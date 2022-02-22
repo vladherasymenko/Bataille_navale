@@ -1,10 +1,12 @@
 package ensta.model;
 
+import java.io.Serializable;
+
 import ensta.model.ship.AbstractShip;
 import ensta.util.ColorUtil;
 import ensta.util.Orientation;
 
-public class Board implements IBoard{
+public class Board implements Serializable, IBoard{
 
 	private String name;
 	private ShipState[][] ships;

@@ -1,6 +1,11 @@
 package ensta.controller;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
@@ -34,13 +39,12 @@ public class Game {
 	private Player player1;
 	private Player player2;
 	private Scanner sin;
-	private boolean multiplayer;
+	private Boolean multiplayer;
 
 	/*
 	 * *** Constructeurs
 	 */
-	public Game(boolean multiplayer) {
-		this.multiplayer = multiplayer;
+	public Game() {
 	}
 	
 	private static void addShip(char label,String name, Board currentBoard) {
@@ -78,6 +82,24 @@ public class Game {
 	
 	public Game init() {
 		if (!loadSave()) {
+			Scanner scanner = new Scanner(System.in);
+			this.multiplayer = false;
+			boolean end = false;
+			String[] in;
+			do {
+				System.out.println("Voudriez-vous entrer le mode multijoueur ? (y/n) ");
+				in = scanner.nextLine().toLowerCase().split("");
+				if(in[0].equals("y") || in[0].equals("n")) {
+					end = true;
+				}
+				else {
+					System.out.println("Veuillez entrer 'y' ou 'n' !");
+				}
+			} while(end == false);
+				
+			if(in[0].equals("y")) {
+				this.multiplayer = true;
+			}
 			
 			// TODO init boards
 			Board boardPlayer1 = new Board("Player1");
@@ -130,7 +152,8 @@ public class Game {
 		b1.print();
 		boolean done;
 		do {
-			if(multiplayer) {
+			save(); // pour ne pas sauvegarder aussi le tour et ne pas compliquer le code, il vaut mieux de sauvegarder la partie qu'au début du tour de player1
+			if(this.multiplayer) {
 				System.out.println("\n\n\n\n\n\n\n\nTour de : " + b1.getName());
 				b1.print();
 			}
@@ -143,14 +166,13 @@ public class Game {
 			System.out.println("                     " + b1.getName());
 			b1.print();
 			System.out.println(makeHitMessage(false /* outgoing hit */, coords, hit));
-			//save();
 			
 			if (!done && !strike) {
-				if(multiplayer) {
+				if(this.multiplayer) {
 					System.out.println("\n\n\n\n\n\n\n\n\n\nPassez l'ordinateur au joueur " + b2.getName());
 				}
 				do {
-					if(multiplayer) {
+					if(this.multiplayer) {
 						System.out.println("\n\n\n\n\n\n\n\n\n\nTour de : " + b2.getName());
 						b2.print();
 					}
@@ -160,7 +182,7 @@ public class Game {
 					b2.setHit(strike, coords);
 					
 					if (strike) {
-						if(multiplayer) {
+						if(this.multiplayer) {
 							System.out.println("                     " + b2.getName());
 							b2.print();
 						}
@@ -176,11 +198,11 @@ public class Game {
 
 					if (!done) {
 						if (!strike) {
-							if(multiplayer) {
+							if(this.multiplayer) {
 								System.out.println("\n\n\n\n\n\n\n\n\n\nPassez l'ordinateur au joueur " + b1.getName());
 							}
 						}
-//						save();
+						//save();
 					}
 				} while (strike && !done);
 			}
@@ -194,29 +216,44 @@ public class Game {
 	}
 
 	private void save() {
-//		try {
-//			// TODO bonus 2 : uncomment
-//			// if (!SAVE_FILE.exists()) {
-//			// SAVE_FILE.getAbsoluteFile().getParentFile().mkdirs();
-//			// }
-//
-//			// TODO bonus 2 : serialize players
-//
-//		} catch (IOException e) {
-//			e.printStackTrace();
-//		}
+		try {
+			if (!SAVE_FILE.exists()) {
+				SAVE_FILE.getAbsoluteFile().getParentFile().mkdirs();
+			}
+
+			FileOutputStream fos = new FileOutputStream(SAVE_FILE);
+			ObjectOutputStream oos = new ObjectOutputStream(fos);
+			
+			oos.writeObject(player1);
+			oos.writeObject(player2);
+			
+			oos.writeBoolean(multiplayer);
+
+			oos.close();
+			fos.close();
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 	private boolean loadSave() {
-//		if (SAVE_FILE.exists()) {
-//			try {
-//				// TODO bonus 2 : deserialize players
-//
-//				return true;
-//			} catch (IOException | ClassNotFoundException e) {
-//				e.printStackTrace();
-//			}
-//		}
+		if (SAVE_FILE.exists()) {
+			try {
+				// TODO bonus 2 : deserialize players
+				FileInputStream fis = new FileInputStream(SAVE_FILE);
+				ObjectInputStream ois = new ObjectInputStream(fis);
+				
+				player1 = (Player) ois.readObject();
+				player2 = (Player) ois.readObject();
+				
+				this.multiplayer = ois.readBoolean();
+
+				return true;
+			} catch (IOException | ClassNotFoundException e) {
+				e.printStackTrace();
+			}
+		}
 		return false;
 	}
 

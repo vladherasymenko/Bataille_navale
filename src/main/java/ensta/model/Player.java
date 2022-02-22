@@ -7,7 +7,7 @@ import ensta.model.ship.AbstractShip;
 import ensta.util.Orientation;
 import ensta.view.InputHelper;
 
-public class Player {
+public class Player implements Serializable{
 	/*
 	 * ** Attributs
 	 */
@@ -16,6 +16,7 @@ public class Player {
 	private int destroyedCount;
 	protected AbstractShip[] ships;
 	private boolean lose;
+
 
 	/*
 	 * ** Constructeur
